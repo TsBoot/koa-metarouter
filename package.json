@@ -1,6 +1,6 @@
 {
   "name": "koa-metarouter",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "this project is use Typescript ‘reflect-metadata’ defined koa-router",
   "main": "lib/index.js",
   "files": [
