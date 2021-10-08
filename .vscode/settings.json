@@ -1,0 +1,14 @@
+{
+    "eslint.alwaysShowStatus": true,
+    "eslint.options": {
+        "configFile": ".eslintrc.json"
+    },
+    "eslint.format.enable": true,
+    "eslint.validate": [
+        "typescript",
+        "javascript"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
+}

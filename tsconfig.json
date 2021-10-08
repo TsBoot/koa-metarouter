@@ -1,0 +1,33 @@
+// https://www.typescriptlang.org/tsconfig#typeRoots
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 14",
+  "compilerOptions": {
+    "outDir": "./lib/",
+    "rootDirs": [
+      "./src/**/*"
+    ],
+    "noImplicitAny": true,
+    "lib": [
+      "ES5",
+      "ES2015",
+      "ES2016",
+      "ES2017",
+      "ES2018",
+      "ES2019",
+      "ES2020",
+      "dom"
+    ],
+    "module": "CommonJS",
+    "target": "ES2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
