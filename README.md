@@ -4,11 +4,15 @@ this project is use Typescript ‘reflect-metadata’ defined koa-router
 
 这个项目是用 `typescript` 中的`reflect-metadata` 来实现koa路由定义的插件
 
-# need [reflect-metadata] - 依赖 [reflect-metadata]
+# need \[reflect-metadata] - 依赖 \[reflect-metadata]
+
+[https://www.npmjs.com/package/reflect-metadata](https://www.npmjs.com/package/reflect-metadata "https://www.npmjs.com/package/reflect-metadata")
 
 `npm i reflect-metadata`
 
-`import "reflect-metadata";`
+```typescript
+import "reflect-metadata";
+```
 
 ```json
 // tsconfig.json
@@ -64,4 +68,5 @@ export default class DemoController extends BaseController {
       header
     }
   }
+}
 ```
