@@ -26,6 +26,8 @@ import "reflect-metadata";
 
 # usage - 用例
 
+`npm i koa-metarouter`
+
 ```typescript
 // router.ts
 import Router from "@koa/router";
