@@ -1,77 +1,132 @@
 
-import type { Context, Middleware } from "koa";
+import { Context, Middleware } from "koa";
+import type Router from "@koa/router";
+let metaRouter : Router;
 
-let metaRouter : any;
+type UrlPath = string | RegExp;
 
-type AllowMethod = "post" | "get" | "put" | "delete" | "del" | "patch" | "link" | "unlink" | "head" | "options" | "all";
+type RouterMethodDecorator = (name : string | null, method ?: UrlPath, path ?: UrlPath | Middleware, ...middleware : Array<Middleware>) => MethodDecorator;
+type SimpleRouterMethodDecorator = (name : string, path ?: UrlPath | Middleware, ...middleware : Array<Middleware>) => MethodDecorator;
+type SimpleRedirectDecorator = (urlPath : string, redirectPath : string, statusCode ?: number | undefined) => MethodDecorator;
 
-type UrlPath = string | RegExp | (string | RegExp)[];
-
-type RouterMethodDecorator = (method : AllowMethod, urlPath : UrlPath, ...middleware : Array<Middleware>) => MethodDecorator;
-type SimpleRouterMethodDecorator = (urlPath : UrlPath, ...middleware : Array<Middleware>) => MethodDecorator;
-
-const MetaRouter : RouterMethodDecorator = (method, urlPath, ...middleware) => (controller : any, functionName, _desc) => {
-  metaRouter[ method ](urlPath, ...middleware, async (ctx : Context) : Promise<any> => {
-    const Controller = controller.constructor;
-    const obj = new Controller(ctx);
-    return await obj[ functionName ]();
-  });
+const emptyMiddleware = (_ctx : any, next : () => void) => {
+  next();
 };
 
-const Post : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("post", urlPath, ...middleware);
+const MetaRouter : RouterMethodDecorator = (name, methodOrpath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  let _name : string | null = name;
+  let _method = methodOrpath;
+  let _path = pathOrMiddleware;
+  let _middleware = middleware;
+  // 如果 path 是正则或字符串,说明有name参数
+  if (name === null || typeof pathOrMiddleware === "string" || pathOrMiddleware instanceof RegExp) {
+    _path = pathOrMiddleware as string;
+  } else {
+    _name = name;
+    _method = name;
+    if (methodOrpath) {
+      _path = methodOrpath;
+    } else {
+      throw new Error("Path parameters must be specified");
+    }
+    _middleware = [ pathOrMiddleware as Middleware, ...middleware ];
+  }
+  return (controller : any, functionName : any, _desc : any) => {
+    const item = async (ctx : Context) : Promise<any> => {
+      const Controller = controller.constructor;
+      const obj = new Controller(ctx);
+      return await obj[ functionName ]();
+    };
+    _middleware.push(item);
+    if (!_name && _name === null) {
+      metaRouter.register(_path as UrlPath, [ _method as string ], _middleware);
+    } else {
+      metaRouter.register(_path as UrlPath, [ _method as string ], _middleware, {
+        name: _name,
+      });
+    }
+  };
 };
-const Get : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("get", urlPath, ...middleware);
+
+const Redirect : SimpleRedirectDecorator = (urlPath, redirectPath, statusCode) => {
+  return (_controller : any, _functionName : any, _desc : any) => {
+    metaRouter.redirect(urlPath, redirectPath, statusCode);
+  };
 };
-const Put : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("put", urlPath, ...middleware);
+
+function changeArgument (method : string, nameOrPath : string, pathOrMiddleware : Middleware | UrlPath | undefined, middleware : Array<Middleware>) {
+  let _name : string | null = nameOrPath;
+  let _path = pathOrMiddleware;
+  let _middleware = middleware;
+  if (typeof pathOrMiddleware === "string" || pathOrMiddleware instanceof RegExp) {
+    _path = pathOrMiddleware as string;
+  } else {
+    _name = null;
+    _path = nameOrPath;
+    _middleware = [ pathOrMiddleware as Middleware, ...middleware ];
+  }
+  return MetaRouter(_name, method, _path, ..._middleware);
+}
+
+/**
+ *  The following code is sweet sugar
+ *  下面是一些为了简化使用而定义的方法
+ */
+const All : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("All", nameOrPath, pathOrMiddleware, middleware);
 };
-const Delete : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("delete", urlPath, ...middleware);
+
+const Get : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Get", nameOrPath, pathOrMiddleware, middleware);
 };
-const Del : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("del", urlPath, ...middleware);
+const Head : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Head", nameOrPath, pathOrMiddleware, middleware);
 };
-const Patch : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("patch", urlPath, ...middleware);
+const Post : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Post", nameOrPath, pathOrMiddleware, middleware);
 };
-const Link : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("link", urlPath, ...middleware);
+const Put : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Put", nameOrPath, pathOrMiddleware, middleware);
 };
-const Unlink : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("unlink", urlPath, ...middleware);
+const Delete : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Delete", nameOrPath, pathOrMiddleware, middleware);
 };
-const Head : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("head", urlPath, ...middleware);
+const Del = Delete;
+const Patch : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Patch", nameOrPath, pathOrMiddleware, middleware);
 };
-const Options : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("options", urlPath, ...middleware);
+const Link : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Link", nameOrPath, pathOrMiddleware, middleware);
 };
-const All : SimpleRouterMethodDecorator = (urlPath, ...middleware) => {
-  return MetaRouter("all", urlPath, ...middleware);
+const Unlink : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Unlink", nameOrPath, pathOrMiddleware, middleware);
+};
+const Options : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return changeArgument("Options", nameOrPath, pathOrMiddleware, middleware);
 };
 export {
-  AllowMethod,
   UrlPath,
-  RouterMethodDecorator,
+  SimpleRouterMethodDecorator,
   MetaRouter,
 
-  Post,
+  Redirect,
+
+  All,
   Get,
+  Head,
+  Post,
   Put,
   Delete,
   Del,
   Patch,
   Link,
   Unlink,
-  Head,
   Options,
-  All,
 };
 
-function setRouter<T> (router : T) : T {
+function setRouter (router : Router) : Router {
   metaRouter = router;
+
   return metaRouter;
 }
 export default setRouter;
