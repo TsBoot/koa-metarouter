@@ -1,5 +1,5 @@
 
-import { Context, Middleware } from "koa";
+import { Context, Middleware, Next } from "koa";
 import type Router from "@koa/router";
 let metaRouter : Router;
 
@@ -9,7 +9,7 @@ type RouterMethodDecorator = (name : string | null, method ?: UrlPath, path ?: U
 type SimpleRouterMethodDecorator = (name : string, path ?: UrlPath | Middleware, ...middleware : Array<Middleware>) => MethodDecorator;
 type SimpleRedirectDecorator = (urlPath : string, redirectPath : string, statusCode ?: number | undefined) => MethodDecorator;
 
-const emptyMiddleware = (_ctx : any, next : () => void) => {
+const emptyMiddleware = (_ctx : Context, next : Next) : void => {
   next();
 };
 
@@ -54,7 +54,7 @@ const Redirect : SimpleRedirectDecorator = (urlPath, redirectPath, statusCode) =
   };
 };
 
-function changeArgument (method : string, nameOrPath : string, pathOrMiddleware : Middleware | UrlPath | undefined, middleware : Array<Middleware>) {
+function getDecorator (method : string, nameOrPath : string, pathOrMiddleware : Middleware | UrlPath | undefined, middleware : Array<Middleware>) : MethodDecorator {
   let _name : string | null = nameOrPath;
   let _path = pathOrMiddleware;
   let _middleware = middleware;
@@ -73,36 +73,36 @@ function changeArgument (method : string, nameOrPath : string, pathOrMiddleware 
  *  下面是一些为了简化使用而定义的方法
  */
 const All : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("All", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("All", nameOrPath, pathOrMiddleware, middleware);
 };
 
 const Get : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Get", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Get", nameOrPath, pathOrMiddleware, middleware);
 };
 const Head : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Head", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Head", nameOrPath, pathOrMiddleware, middleware);
 };
 const Post : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Post", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Post", nameOrPath, pathOrMiddleware, middleware);
 };
 const Put : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Put", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Put", nameOrPath, pathOrMiddleware, middleware);
 };
 const Delete : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Delete", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Delete", nameOrPath, pathOrMiddleware, middleware);
 };
 const Del = Delete;
 const Patch : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Patch", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Patch", nameOrPath, pathOrMiddleware, middleware);
 };
 const Link : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Link", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Link", nameOrPath, pathOrMiddleware, middleware);
 };
 const Unlink : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Unlink", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Unlink", nameOrPath, pathOrMiddleware, middleware);
 };
 const Options : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return changeArgument("Options", nameOrPath, pathOrMiddleware, middleware);
+  return getDecorator("Options", nameOrPath, pathOrMiddleware, middleware);
 };
 export {
   UrlPath,
@@ -122,6 +122,9 @@ export {
   Link,
   Unlink,
   Options,
+
+  getDecorator,
+  emptyMiddleware,
 };
 
 function setRouter (router : Router) : Router {

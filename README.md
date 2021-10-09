@@ -1,5 +1,9 @@
 # koa-metarouter
 
+> 注:该项目暂未考虑多路由实例的情况,后续考虑定义为class,根据实际情况可能发生api变更
+
+> 还需要添加测试用例
+
 this project is use Typescript ‘reflect-metadata’ defined koa-router
 
 这个项目是用 `typescript` 中的`reflect-metadata` 来实现koa路由定义的插件
@@ -50,10 +54,10 @@ export default metaRouter;
 
   你可以在控制器中使用以下装饰器
 
-|          |            |            |           |       |         |
-|    ----  |    ----    |     ----   |     ----  |  ---- |   ----  |
-|   Post   |     Get    |    Put     |  Delete   |  Del  |  Patch  |
-|   Link   |    Unlink  |    Head    |  Options  |  All  |         |
+| decorators name - 装饰器名称 ||||||
+|   :----:   |   :----:   |    :----:  |    :----: | :----:  |  :----: |
+|    Post    |     Get    |    Put     |  Delete   |   Del   |  Patch  |
+|    Link    |    Unlink  |    Head    |  Options  |   All   |         |
 
 
   If you want to respond to any methods, you can use `All`
@@ -169,4 +173,14 @@ export default class DemoController extends BaseController {
   @MetaRouter(null, "purge", "/custom_c")
   async custom_c () : Promise<any> {}
 }
+```
+
+## Custom decorators - 自定义装饰器
+
+```typescript
+import { getDecorator, SimpleRouterMethodDecorator,emptyMiddleware } from "koa-metarouter"
+
+const Purge : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
+  return getDecorator("Purge", nameOrPath, pathOrMiddleware, middleware);
+};
 ```
