@@ -124,7 +124,6 @@ export default class DemoController {
   async middleware () : Promise<any> {}
 }
 
-
 ```
 
 ```typescript
@@ -168,28 +167,6 @@ export default class DemoController {
 (HTML1.1)rfc7231:
 >https://datatracker.ietf.org/doc/html/rfc7231#section-4
 
-```
- +---------+-------------------------------------------------+-------+
- | Method  | Description                                     | Sec.  |
- +---------+-------------------------------------------------+-------+
- | GET     | Transfer a current representation of the target | 4.3.1 |
- |         | resource.                                       |       |
- | HEAD    | Same as GET, but only transfer the status line  | 4.3.2 |
- |         | and header section.                             |       |
- | POST    | Perform resource-specific processing on the     | 4.3.3 |
- |         | request payload.                                |       |
- | PUT     | Replace all current representations of the      | 4.3.4 |
- |         | target resource with the request payload.       |       |
- | DELETE  | Remove all current representations of the       | 4.3.5 |
- |         | target resource.                                |       |
- | CONNECT | Establish a tunnel to the server identified by  | 4.3.6 |
- |         | the target resource.                            |       |
- | OPTIONS | Describe the communication options for the      | 4.3.7 |
- |         | target resource.                                |       |
- | TRACE   | Perform a message loop-back test along the path | 4.3.8 |
- |         | to the target resource.                         |       |
- +---------+-------------------------------------------------+-------+
-```
 if you want realize custom http Methods, you can use like this
 
 如果你想实现自定义的`http`请求方法,你可以这样使用
@@ -208,13 +185,18 @@ const router = new Router({
     "PURGE", // add method 这里添加自定义的方法 !!!
   ],
 });
+
+
 // -----------------------------------
+
+
 import MataRouterClass, { RouterMethodDecorator } from "koa-metarouter";
 const Purge : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
   const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
   options.method = "purge";
   return MetaRouter(options, ...middleware);
 };
+
 // -----------------------------------
 
 // DemoController
@@ -225,14 +207,4 @@ export default class DemoController{
   @Purge()
   async custom_decorators () : Promise<any> {}
 }
-```
-
-## Custom decorators - 自定义装饰器
-
-```typescript
-import { getDecorator, SimpleRouterMethodDecorator,emptyMiddleware } from "koa-metarouter"
-
-const Purge : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Purge", nameOrPath, pathOrMiddleware, middleware);
-};
 ```
