@@ -1,7 +1,5 @@
 # koa-metarouter
 
-> 注:该项目暂未考虑多路由实例的情况,后续考虑定义为class,根据实际情况可能发生api变更
-
 > 还需要添加测试用例
 
 this project is use Typescript ‘reflect-metadata’ defined koa-router
@@ -30,26 +28,60 @@ import "reflect-metadata";
 
 # usage - 用例
 ## base usage - 基础用例
-`npm i koa-metarouter`
 
 `npm i koa-metarouter`
 
 ```typescript
-// router.ts
-import Router from "@koa/router";
-import MetaRouter from "koa-metarouter";
 
-const router = new Router();
-router.prefix("/v1");
+import metaRouter from "./metaRouter";
 
-const metaRouter = MetaRouter(router);
+metaRouter.router.prefix("/v1");
 
-import "../controller/v1/public/DemoController";
+import "../controller/v1/public/MataRouterController";
 // or
-import("../controller/v1/public/DemoController");
+import("../controller/v1/public/MataRouterController");
 
-export default metaRouter;
+export default metaRouter.router;
 ```
+
+```typescript
+// metaRouter.ts
+import Router from "@koa/router";
+import MetaRouterClass from "koa-metarouter";
+const router = new Router({
+  methods: [
+    "HEAD",
+    "OPTIONS",
+    "GET",
+    "PUT",
+    "PATCH",
+    "POST",
+    "DELETE",
+    "PURGE", // add method 这里添加自定义的方法
+  ],
+});
+
+const metaRouter : MetaRouterClass = new MetaRouterClass(router);
+
+// you can use "npm i change-case" format default path
+// https://www.npmjs.com/package/change-case
+
+// default 默认
+metaRouter.classNameFormat = (className : string) : string => {
+  const reg = /controller$/i;
+    className = className.replace(reg, "");
+    return className;
+};
+
+// default 默认
+metaRouter.functionNameFormat = (functionName : string) : string => {
+  return functionName;
+};
+export default metaRouter;
+
+```
+
+
   You can use the following decorators in Controller
 
   你可以在控制器中使用以下装饰器
@@ -66,40 +98,63 @@ export default metaRouter;
 
 ```typescript
 // DemoController
-export default class DemoController extends BaseController {
+export default class DemoController {
 
-  @Get("/public/Demo/requestArgument/:id",
-    ...otherMiddleware
-  )
-  async requestArgument () : Promise<any> {
-    const { params } = this.ctx;
-    return {
-      params.id
-    }
-  }
+
+  // prefix + ControllerName + FunctionName 
+  // Url: /v1/Demo/test
+  @Get() /
+  async test () : Promise<any> {}
+
 
   // if you want set router name
   // 如果你想定义路由的名称,你可以这样做
-  @All("routerName","/url",
-    ...otherMiddleware
-  )
+  @All({path:"/requestArgument"}) // Url: /v1/requestArgument
   async requestArgument () : Promise<any> {}
+
+  // if you want add middleware
+  @All(middleware1,middleware2,...)
+  async middleware () : Promise<any> {}
+  // or
+  @All({path:"/middleware"},middleware1,middleware2,...)
+  async middleware () : Promise<any> {}
+
+  // if you want set router name
+  @All({name:"middleware"})
+  async middleware () : Promise<any> {}
+}
+
+
+```
+
+```typescript
+interface MethodOptions {
+  name ?: string,
+
+  path ?: UrlPath | null | undefined
+  method ?: string | Array<string>
+
+  sensitive ?: boolean | undefined;
+  strict ?: boolean | undefined;
+  end ?: boolean | undefined;
+  prefix ?: string | undefined;
+  ignoreCaptures ?: boolean | undefined;
 }
 ```
 
 ## Redirect 重定向
 
 ```typescript
-export default class DemoController extends BaseController {
+export default class DemoController {
   // default statusCode is 301 默认的状态码是301
-  @Redirect("/url_a/:id","/url_c/:id")
+  @Redirect("/url_a","/url_c")
   async url_a () : Promise<any> {}
 
   // if you want use code 302, 如果你希望使用302临时重定向
-  @Redirect("/url_b/:id","/url_b/:id",302)
+  @Redirect("/url_b","/url_c",302)
   async url_b () : Promise<any> {}
 
-  @Get("/url_c/:id")
+  @Get()
   async url_c () : Promise<any> {}
 
 }
@@ -108,8 +163,9 @@ export default class DemoController extends BaseController {
 ## custom usage 自定义用例
  MetaRouter himself, 使用MetaRouter本体
 
-(HTML1.1)rfc7231:
+>https://github.com/jshttp/methods
 
+(HTML1.1)rfc7231:
 >https://datatracker.ietf.org/doc/html/rfc7231#section-4
 
 ```
@@ -139,7 +195,6 @@ if you want realize custom http Methods, you can use like this
 如果你想实现自定义的`http`请求方法,你可以这样使用
 
 ```typescript
-// router.ts
 import Router from "@koa/router";
 const router = new Router({
   methods: [
@@ -150,28 +205,25 @@ const router = new Router({
     "PATCH",
     "POST",
     "DELETE",
-    "PURGE", // add method 这里添加自定义的方法
+    "PURGE", // add method 这里添加自定义的方法 !!!
   ],
 });
+// -----------------------------------
+import MataRouterClass, { RouterMethodDecorator } from "koa-metarouter";
+const Purge : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+  const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  options.method = "purge";
+  return MetaRouter(options, ...middleware);
+};
+// -----------------------------------
 
 // DemoController
-export default class DemoController extends BaseController {
-  @MetaRouter("purge", "/custom_a")
+export default class DemoController{
+  @MetaRouter({ method: "purge" })
   async custom_a () : Promise<any> {}
 
-  @MetaRouter("purge", "/custom_a"
-    ...otherMiddleware
-  )
-  async custom_a () : Promise<any> {}
-
-  // if you want set router name
-  // 如果你想定义路由的名称,你可以这样做
-  @MetaRouter("routerName", "purge", "/custom_b")
-  async custom_b () : Promise<any> {}
-
-  // or not set name, must be equal null
-  @MetaRouter(null, "purge", "/custom_c")
-  async custom_c () : Promise<any> {}
+  @Purge()
+  async custom_decorators () : Promise<any> {}
 }
 ```
 

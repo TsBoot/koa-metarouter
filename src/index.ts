@@ -1,135 +1,175 @@
 
 import { Context, Middleware, Next } from "koa";
 import type Router from "@koa/router";
-let metaRouter : Router;
+import type { LayerOptions } from "@koa/router";
+import methods from "methods";
 
 type UrlPath = string | RegExp;
 
-type RouterMethodDecorator = (name : string | null, method ?: UrlPath, path ?: UrlPath | Middleware, ...middleware : Array<Middleware>) => MethodDecorator;
-type SimpleRouterMethodDecorator = (name : string, path ?: UrlPath | Middleware, ...middleware : Array<Middleware>) => MethodDecorator;
-type SimpleRedirectDecorator = (urlPath : string, redirectPath : string, statusCode ?: number | undefined) => MethodDecorator;
+// LayerOptions
+interface MethodOptions {
+  name ?: string,
 
-const emptyMiddleware = (_ctx : Context, next : Next) : void => {
-  next();
+  path ?: UrlPath | null | undefined
+  method ?: string | Array<string>
+
+  sensitive ?: boolean | undefined;
+  strict ?: boolean | undefined;
+  end ?: boolean | undefined;
+  prefix ?: string | undefined;
+  ignoreCaptures ?: boolean | undefined;
+}
+
+export type RouterMethodDecorator = (
+  optionsOrMiddleware ?: MethodOptions | Middleware,
+  ...middleware : Array<Middleware>
+) => MethodDecorator;
+
+type RedirectDecorator = (
+  urlPath : string,
+  redirectPath : string,
+  statusCode ?: number | undefined
+) => MethodDecorator;
+
+type ArgumentsFormat = (
+  optionsOrMiddleware ?: MethodOptions | Middleware,
+  ...middleware : Array<Middleware>
+) => {
+  options : MethodOptions,
+  middleware : Array<Middleware>
 };
 
-const MetaRouter : RouterMethodDecorator = (name, methodOrpath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  let _name : string | null = name;
-  let _method = methodOrpath;
-  let _path = pathOrMiddleware;
-  let _middleware = middleware;
-  // 如果 path 是正则或字符串,说明有name参数
-  if (name === null || typeof pathOrMiddleware === "string" || pathOrMiddleware instanceof RegExp) {
-    _path = pathOrMiddleware as string;
-  } else {
-    _name = name;
-    _method = name;
-    if (methodOrpath) {
-      _path = methodOrpath;
-    } else {
-      throw new Error("Path parameters must be specified");
-    }
-    _middleware = [ pathOrMiddleware as Middleware, ...middleware ];
+class MataRouterClass {
+
+  router : Router;
+  static emptyMiddleware : Middleware = (_ctx : Context, next : Next) : void => {
+    next();
+  };
+
+  constructor (router : Router) {
+    this.router = router;
   }
-  return (controller : any, functionName : any, _desc : any) => {
-    const item = async (ctx : Context) : Promise<any> => {
-      const Controller = controller.constructor;
-      const obj = new Controller(ctx);
-      return await obj[ functionName ]();
+
+  static argumentsFormat : ArgumentsFormat = (optionsOrMiddleware, ...middleware) => {
+    let options : MethodOptions = {};
+    if (typeof optionsOrMiddleware === "function") {
+      options.path = undefined;
+      options.method = undefined;
+      middleware.unshift(optionsOrMiddleware);
+    } else if (typeof optionsOrMiddleware === "object") {
+      options = optionsOrMiddleware;
+    }
+    return {
+      options,
+      middleware,
     };
-    _middleware.push(item);
-    if (!_name && _name === null) {
-      metaRouter.register(_path as UrlPath, [ _method as string ], _middleware);
-    } else {
-      metaRouter.register(_path as UrlPath, [ _method as string ], _middleware, {
-        name: _name,
-      });
-    }
   };
-};
-
-const Redirect : SimpleRedirectDecorator = (urlPath, redirectPath, statusCode) => {
-  return (_controller : any, _functionName : any, _desc : any) => {
-    metaRouter.redirect(urlPath, redirectPath, statusCode);
-  };
-};
-
-function getDecorator (method : string, nameOrPath : string, pathOrMiddleware : Middleware | UrlPath | undefined, middleware : Array<Middleware>) : MethodDecorator {
-  let _name : string | null = nameOrPath;
-  let _path = pathOrMiddleware;
-  let _middleware = middleware;
-  if (typeof pathOrMiddleware === "string" || pathOrMiddleware instanceof RegExp) {
-    _path = pathOrMiddleware as string;
-  } else {
-    _name = null;
-    _path = nameOrPath;
-    _middleware = [ pathOrMiddleware as Middleware, ...middleware ];
+  classNameFormat (className : string) : string {
+    const reg = /controller$/i;
+    className = className.replace(reg, "");
+    return className;
   }
-  return MetaRouter(_name, method, _path, ..._middleware);
+  functionNameFormat (functionName : string) : string {
+    return functionName;
+  }
+  MetaRouter : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    let { path, method } = options;
+    return (controller : any, functionName : string | symbol, _desc : any) => {
+      const className = controller.constructor.name;
+      const item = async (ctx : Context, _next : Next) : Promise<any> => {
+        const Controller = controller.constructor;
+        const instance = new Controller(ctx);
+        return await instance[ functionName ]();
+      };
+
+      middleware.push(item);
+
+      if (!path) {
+        path = "/" + this.classNameFormat(className) + "/" + this.functionNameFormat((functionName as string));
+      }
+
+      if (!method) {
+        method = "all";
+      }
+      if (typeof method === "string") {
+        if (method.toLowerCase() === "all") {
+          method = methods;
+        } else {
+          method = [ method ];
+        }
+      }
+
+      this.router.register(path, method, middleware, options as LayerOptions);
+
+    };
+  };
+
+  Redirect : RedirectDecorator = (urlPath, redirectPath, statusCode) => {
+    return () : void => {
+      this.router.redirect(urlPath, redirectPath, statusCode);
+    };
+  };
+
+  All : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "all";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Get : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "get";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Head : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "head";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Post : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "post";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Put : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "put";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Delete : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "delete";
+    return this.MetaRouter(options, ...middleware);
+  };
+  Del = this.Delete;
+
+  Patch : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "patch";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Link : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "link";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Unlink : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "unlink";
+    return this.MetaRouter(options, ...middleware);
+  };
+
+  Options : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    options.method = "options";
+    return this.MetaRouter(options, ...middleware);
+  };
 }
-
-/**
- *  The following code is sweet sugar
- *  下面是一些为了简化使用而定义的方法
- */
-const All : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("All", nameOrPath, pathOrMiddleware, middleware);
-};
-
-const Get : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Get", nameOrPath, pathOrMiddleware, middleware);
-};
-const Head : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Head", nameOrPath, pathOrMiddleware, middleware);
-};
-const Post : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Post", nameOrPath, pathOrMiddleware, middleware);
-};
-const Put : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Put", nameOrPath, pathOrMiddleware, middleware);
-};
-const Delete : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Delete", nameOrPath, pathOrMiddleware, middleware);
-};
-const Del = Delete;
-const Patch : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Patch", nameOrPath, pathOrMiddleware, middleware);
-};
-const Link : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Link", nameOrPath, pathOrMiddleware, middleware);
-};
-const Unlink : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Unlink", nameOrPath, pathOrMiddleware, middleware);
-};
-const Options : SimpleRouterMethodDecorator = (nameOrPath, pathOrMiddleware = emptyMiddleware, ...middleware) => {
-  return getDecorator("Options", nameOrPath, pathOrMiddleware, middleware);
-};
-export {
-  UrlPath,
-  SimpleRouterMethodDecorator,
-  MetaRouter,
-
-  Redirect,
-
-  All,
-  Get,
-  Head,
-  Post,
-  Put,
-  Delete,
-  Del,
-  Patch,
-  Link,
-  Unlink,
-  Options,
-
-  getDecorator,
-  emptyMiddleware,
-};
-
-function setRouter (router : Router) : Router {
-  metaRouter = router;
-
-  return metaRouter;
-}
-export default setRouter;
+export default MataRouterClass;
