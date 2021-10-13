@@ -1,7 +1,7 @@
 
 import { Context, Middleware, Next } from "koa";
 import type Router from "@koa/router";
-import type { LayerOptions } from "@koa/router";
+import { LayerOptions } from "@koa/router";
 import methods from "methods";
 
 type UrlPath = string | RegExp;
@@ -24,7 +24,7 @@ export type RouterMethodDecorator = (
   optionsOrMiddleware ?: MethodOptions | Middleware,
   ...middleware : Array<Middleware>
 ) => MethodDecorator;
-
+type ControllerDecorator = (controllerOptions : { path ?: string }, ...middleware : Array<Middleware>) => ClassDecorator;
 type RedirectDecorator = (
   urlPath : string,
   redirectPath : string,
@@ -39,8 +39,44 @@ type ArgumentsFormat = (
   middleware : Array<Middleware>
 };
 
-class MataRouterClass {
+type MapItem = {
+  customPath : UrlPath,
+  method : string[],
+  middleware : Array<Middleware>,
+  options : MethodOptions
+};
 
+class MataRouterClass {
+  classRouterMap : Map<{[key : string] : unknown }, Array<MapItem>> = new Map();
+  static getrouterDirectory (target : any) : string {
+    let path;
+    if (!target.routerDirectory) {
+      path = "/" + target.name;
+    } else {
+      path = target.routerDirectory + "/" + target.name;
+    }
+    return path;
+  }
+  Controller : ControllerDecorator = (controllerOptions, ...middleware) => {
+    let { path } = controllerOptions;
+    return (target : any) => {
+      const arr = this.classRouterMap.get(target);
+      if (arr) {
+        arr.forEach(item => {
+          const { customPath, method, options } = item;
+          let registerMiddleware;
+          if (middleware.length > 0) {
+            registerMiddleware = [ ...middleware, ...item.middleware ];
+          } else {
+            registerMiddleware = item.middleware;
+          }
+          const layer = options as LayerOptions;
+          if (!path) path = "";
+          this.router.register(path + customPath, method, registerMiddleware, layer);
+        });
+      }
+    };
+  };
   router : Router;
   static emptyMiddleware : Middleware = (_ctx : Context, next : Next) : void => {
     next();
@@ -73,20 +109,23 @@ class MataRouterClass {
     return functionName;
   }
   MetaRouter : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    let { path, method } = options;
+    // eslint-disable-next-line prefer-const
+    let { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    let { method } = options;
+    let customPath = options.path;
     return (controller : any, functionName : string | symbol, _desc : any) => {
-      const className = controller.constructor.name;
+      const Controller = controller.constructor;
       const item = async (ctx : Context, _next : Next) : Promise<any> => {
-        const Controller = controller.constructor;
         const instance = new Controller(ctx);
         return await instance[ functionName ]();
       };
 
       middleware.push(item);
 
-      if (!path) {
-        path = "/" + this.classNameFormat(className) + "/" + this.functionNameFormat((functionName as string));
+      const classPath = MataRouterClass.getrouterDirectory(controller.constructor);
+
+      if (!customPath) {
+        customPath = this.functionNameFormat(classPath) + "/" + this.functionNameFormat((functionName as string));
       }
 
       if (!method) {
@@ -99,8 +138,13 @@ class MataRouterClass {
           method = [ method ];
         }
       }
+      let arr = this.classRouterMap.get(Controller);
+      if (!arr) {
+        arr = [];
+      }
 
-      this.router.register(path, method, middleware, options as LayerOptions);
+      arr.push({ customPath, method, middleware, options });
+      this.classRouterMap.set(Controller, arr);
 
     };
   };

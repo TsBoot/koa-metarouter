@@ -32,7 +32,7 @@ import "reflect-metadata";
 `npm i koa-metarouter`
 
 ```typescript
-
+// ./router/index.ts
 import metaRouter from "./metaRouter";
 
 metaRouter.router.prefix("/v1");
@@ -45,7 +45,7 @@ export default metaRouter.router;
 ```
 
 ```typescript
-// metaRouter.ts
+// ./routermetaRouter.ts
 import Router from "@koa/router";
 import MetaRouterClass from "koa-metarouter";
 const router = new Router({
@@ -81,7 +81,6 @@ export default metaRouter;
 
 ```
 
-
   You can use the following decorators in Controller
 
   你可以在控制器中使用以下装饰器
@@ -98,12 +97,15 @@ export default metaRouter;
 
 ```typescript
 // DemoController
+
+const { All, Redirect, Post, Get, MetaRouter, Controller, ... } = metaRouter;
+
+// Controller is necessary, [Controller是必须使用的]
+@Controller({path:"/public"}, ...middleware) 
 export default class DemoController {
-
-
   // prefix + ControllerName + FunctionName 
   // Url: /v1/Demo/test
-  @Get() /
+  @Get()
   async test () : Promise<any> {}
 
 
@@ -144,6 +146,7 @@ interface MethodOptions {
 ## Redirect 重定向
 
 ```typescript
+@Controller({})
 export default class DemoController {
   // default statusCode is 301 默认的状态码是301
   @Redirect("/url_a","/url_c")
@@ -200,6 +203,7 @@ const Purge : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emp
 // -----------------------------------
 
 // DemoController
+@Controller({})
 export default class DemoController{
   @MetaRouter({ method: "purge" })
   async custom_a () : Promise<any> {}
