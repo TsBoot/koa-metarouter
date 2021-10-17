@@ -1,6 +1,6 @@
 {
   "name": "koa-metarouter",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "this project is use Typescript ‘reflect-metadata’ defined koa-router",
   "main": "lib/index.js",
   "files": [
@@ -9,8 +9,8 @@
   "scripts": {
     "build": "tsc -d",
     "lint": "eslint . --fix",
-    "prepublish":"npm run build ",
-    "publish": "npm publish"
+    "prepub":"npm run build",
+    "pub": "npm publish"
   },
   "repository": {
     "type": "git",

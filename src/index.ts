@@ -125,7 +125,7 @@ class MataRouterClass {
       const classPath = MataRouterClass.getrouterDirectory(controller.constructor);
 
       if (!customPath) {
-        customPath = this.functionNameFormat(classPath) + "/" + this.functionNameFormat((functionName as string));
+        customPath = this.classNameFormat(classPath) + "/" + this.functionNameFormat((functionName as string));
       }
 
       if (!method) {
