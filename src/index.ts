@@ -78,8 +78,8 @@ class MataRouterClass {
     };
   };
   router : Router;
-  static emptyMiddleware : Middleware = (_ctx : Context, next : Next) : void => {
-    next();
+  static emptyMiddleware : Middleware = async (_ctx : Context, next : Next) : Promise<void> => {
+    await next();
   };
 
   constructor (router : Router) {
