@@ -4,9 +4,14 @@
 import metaRouter from "./metaRouter";
 const { All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller } = metaRouter;
 
-@Controller()
+@Controller({ path: "" })
 export default class MethodTestController {
 
+  @Get({ name: "index", path: "/" })
+  async index (): Promise<any> { }
+
+  @Get({ path: "/test" })
+  async test (): Promise<any> { }
 
   @Get({ name: "testGet" })
   async testGet (): Promise<any> { }
@@ -25,6 +30,12 @@ export default class MethodTestController {
 
   @MetaRouter({ method: "get" })
   async MetaRouter (): Promise<any> { }
+
+  @Get({ className: "className", methodName: "methodName" })
+  async changeName (): Promise<any> { }
+
+  @Get({ className: "", methodName: "" })
+  async changeName2 (): Promise<any> { }
 
 
   @Redirect("testGet")

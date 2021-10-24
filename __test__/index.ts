@@ -4,10 +4,8 @@ import metaRouter from "./metaRouter";
 
 import "./TestController";
 
-metaRouter.router.prefix("/prefix");
-
 const expectRouterList = [
-  [ null, "get", "/prefix/Test/Test/testGet" ],
+  [ null, "get", "/Test/testGet" ],
 ];
 
 metaRouter.router.stack.forEach(i => {

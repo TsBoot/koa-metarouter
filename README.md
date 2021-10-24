@@ -39,7 +39,7 @@ import "reflect-metadata";
 // ./router/index.ts
 import metaRouter from "./metaRouter";
 
-metaRouter.router.prefix("/v1");
+// metaRouter.router.prefix("/v1");
 
 import "../controller/v1/public/MataRouterController";
 // or
