@@ -1,6 +1,6 @@
 {
   "name": "koa-metarouter",
-  "version": "2.1.4",
+  "version": "2.2.4",
   "description": "this project is use Typescript ‘reflect-metadata’ defined koa-router",
   "main": "lib/index.js",
   "files": [
@@ -9,8 +9,9 @@
   "scripts": {
     "build": "tsc -d",
     "lint": "eslint . --fix",
-    "prepub":"npm run build",
-    "pub": "npm publish"
+    "prepub": "npm run build",
+    "pub": "npm publish",
+    "test": "npx ts-node .\\__test__\\index.ts"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   },
   "homepage": "https://github.com/TsBoot/koa-metarouter#readme",
   "devDependencies": {
+    "@koa/router": "^10.1.1",
     "@types/koa": "^2.13.4",
     "@types/koa__router": "^8.0.8",
     "@types/methods": "^1.1.1",
@@ -35,6 +37,8 @@
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
     "eslint-plugin-import": "^2.24.2",
+    "reflect-metadata": "^0.1.13",
+    "ts-node": "^10.4.0",
     "typescript": "^4.4.3"
   },
   "dependencies": {

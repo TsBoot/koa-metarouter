@@ -1,26 +1,28 @@
 # koa-metarouter
 
-> this project is use Typescript ‘reflect-metadata’ defined koa-router
+> 这个项目是使用Typescript装饰器简化路由定义流程的路由插件
 
-- 💡 Simplified route definition
-- 🔑 No invasion
-- ⚙️ Multiple router instance
-- 🔌 Extensible
-- 📦 Extremely light
+- 💡 简化路由定义
+- 🔑 无侵入
+- ⚙️ 可以创建多路由实例
+- 🔌 可扩展
+- 📦 轻量的
 
-[中文文档](https://github.com/TsBoot/koa-metarouter/blob/main/README.zh.md)
+[English Document](https://github.com/TsBoot/koa-metarouter/blob/main/README.md)
 
-# need \[reflect-metadata]
+# 依赖 TS新特性,需要 ‘reflect-metadata’ 插件
 
 [https://www.npmjs.com/package/reflect-metadata](https://www.npmjs.com/package/reflect-metadata "https://www.npmjs.com/package/reflect-metadata")
 
 `npm i reflect-metadata`
 
 ```typescript
+// 入口文件
 import "reflect-metadata";
 ```
 
 ```json
+// 添加ts配置
 // tsconfig.json
 {
   "compilerOptions": {
@@ -30,8 +32,8 @@ import "reflect-metadata";
 }
 ```
 
-# Example
-## Basic example
+# 使用方法
+## 基础用法
 
 `npm i koa-metarouter`
 
@@ -58,63 +60,64 @@ const metaRouter : MetaRouterClass = new MetaRouterClass(router);
 ```
 
 
-### you can use change-case format default part
-```cmd
- // https://www.npmjs.com/package/change-case
+### 你可以使用大小写转换工具为路由名称统一格式化
 
- // https://lodash.com/docs/4.17.15#lowerCase // recommend
+```cmd
+  // https://www.npmjs.com/package/change-case
+
+  //https://lodash.com/docs/4.17.15#lowerCase // 推荐
 
   npm i lodash
   // or
   npm i change-case
 ```
 
+
+
 ```typescript
-// ✨ this is default, you can cover it 
+// 这个方法是默认的,你可以覆盖该函数
 metaRouter.classNameFormat = (className : string) : string => {
   const reg = /controller$/i;
     className = className.replace(reg, "");
     return className;
 };
 
-// ✨ this is default, you can cover it 
+// 这个方法是默认的,你可以覆盖该函数
 metaRouter.functionNameFormat = (functionName : string) : string => {
   return functionName;
 };
 export default metaRouter;
 
 ```
+  你可以在控制器中使用以下装饰器
 
-  You can use the following decorators in Controller
-
-
-| decorators ||||||
+| 装饰器名称 ||||||
 |   :----:   |   :----:   |    :----:  |    :----: | :----:  |  :----: |
 |    Post    |     Get    |    Put     |  Delete   |   Del   |  Patch  |
 |    Link    |    Unlink  |    Head    |  Options  |   All   |         |
 
 
-  If you want to respond to any methods, you can use `All`
+  如果你希望响应任意方法,可以使用 `All`
 
 ```typescript
 // DemoController
-
 const { All, Redirect, Post, Get, MetaRouter, Controller, ... } = metaRouter;
 
-// ✨ Controller is necessary
+// ✨ Controller是必须使用的
 @Controller({path:"/public"}, ...middleware) 
 export default class DemoController {
+
   @Get()
   async test () : Promise<any> {}
 
-  // ✨ if you want defined router name
+  // ✨ 如果你想定义路由的名称,你可以这样做
   @All({name :"requestArgument"})
   async requestArgument () : Promise<any> {}
 
-  // ✨ if you want add middleware
+  // ✨ 如果你想添加中间件
   @All(middleware1,middleware2,...)
   async middleware () : Promise<any> {}
-  // or
+  // 或者
   @All({path:"/middleware"},middleware1,middleware2,...)
   async middleware () : Promise<any> {}
  
@@ -137,31 +140,32 @@ interface MethodOptions {
 }
 ```
 
-## Redirect
+## 重定向(仅支持工程内部)
 
 ```typescript
 @Controller({})
 export default class DemoController {
-  // ✨ default statusCode is 301
+  // ✨ 默认是301跳转
   @Redirect("/url_c")
   async url_a () : Promise<any> {}
 
-  // ✨ if you want use code 302
-  @Redirect("/url_b","/url_c",302)
+  // ✨ 你也可以自己定义 302
+  @Redirect("/url_c",302)
+  @Redirect("/url_b","/url_c",302) // 或
   async url_b () : Promise<any> {}
 
   @Get()
   async url_c () : Promise<any> {}
-
-
 }
 ```
->   ✨ more example please look test file
+> ✨ 如果你想查看更多使用方法请查看测试用例
 
-## custom usage
-  use MetaRouter him self
 
-  if you want realize custom http Methods, you can use like this
+## 自定义装饰器
+
+使用MetaRouter本体
+
+如果你想实现自定义的`http`请求方法,你可以这样使用
 
 ```typescript
 import Router from "@koa/router";
@@ -170,7 +174,7 @@ const router = new Router({
     "GET",
     "POST",
     ...
-    "PURGE", // add method !!!
+    "PURGE", // ✨ 在这里添加自定义的方法 !!!
   ],
 });
 

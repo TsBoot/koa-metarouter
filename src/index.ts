@@ -27,13 +27,13 @@ export type RouterMethodDecorator = (
   ...middleware: Array<Middleware>
 )=> MethodDecorator;
 
-type ControllerDecorator = (controllerOptions: { path?: string } | Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
+type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
 
 type RedirectOptions = {
   from?: string,
   to: string,
-  methodName: string,
-  className: string
+  methodName?: string,
+  className?: string
 };
 type RedirectMapItem = {
   from: string, // 也可以是路由名
@@ -114,13 +114,13 @@ class MataRouterClass {
     if (!customPath) {
       // 如果有自定义类名使用自定义类名,否则使用默认名
       if (!customClassName) {
-        customClassName = this.classNameFormat("/" + className);
+        customClassName = this.classNameFormat(className);
       }
       // 如果有自定义函数名使用自定义函数名,否则使用默认名
       if (!customMethName) {
         customMethName = this.methodNameFormat(methodName);
       }
-      customPath = customClassName + "/" + customMethName;
+      customPath = "/" + customClassName + "/" + customMethName;
     }
     return customPath;
   };
@@ -232,6 +232,7 @@ class MataRouterClass {
       if (!method) {
         method = "all";
       }
+
       if (typeof method === "string") {
         if (method.toLowerCase() === "all") {
           method = methods;
@@ -259,9 +260,9 @@ class MataRouterClass {
     let from: string | undefined;
     let to: string;
     let statusCode: number | undefined;
-    let customClassName: string;
-    let customMethName: string;
-    if (typeof _from === "string" && typeof _to === undefined && _statusCode === undefined) {
+    let customClassName: string | undefined;
+    let customMethName: string | undefined;
+    if (typeof _from === "string" && _to === undefined && _statusCode === undefined) {
       to = _from;
       from = undefined;
       statusCode = undefined;
@@ -273,7 +274,7 @@ class MataRouterClass {
       to = _to;
       from = _from;
       statusCode = _statusCode;
-    } else if (typeof _from === "string" && typeof _to === undefined && typeof _statusCode === "number") {
+    } else if (typeof _from === "string" && _to === undefined && typeof _statusCode === "number") {
       to = _from;
       from = undefined;
       statusCode = _statusCode;
@@ -285,7 +286,10 @@ class MataRouterClass {
       if (typeof _to === "number") {
         statusCode = _to;
       }
+    } else {
+      throw new Error("redirect url `to` must be require");
     }
+
     // 将重定向数据添加到Map中
     return (controller: any, methodName: string | symbol, _desc: any) => {
       const className = controller.constructor.name;
@@ -376,5 +380,6 @@ class MataRouterClass {
   //   options.method = "options";
   //   return this.MetaRouter(options, ...middleware);
   // }
+
 }
 export default MataRouterClass;
