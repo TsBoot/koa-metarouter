@@ -3,7 +3,7 @@
 > this project is use Typescript ‘reflect-metadata’ defined koa-router
 
 - 💡 Simplified route definition
-- 🔑 No invasion
+- 🔑 Non-invasive
 - ⚙️ Multiple router instance
 - 🔌 Extensible
 - 📦 Extremely light
