@@ -22,6 +22,12 @@ interface MethodOptions {
   ignoreCaptures?: boolean | undefined;
 }
 
+/**
+ * 方法装饰器
+ * @param optionsOrMiddleware 选项或中间件
+ * @param middlewares 中间件数组
+ * @returns
+ */
 export type RouterMethodDecorator = (
   optionsOrMiddleware?: MethodOptions | Middleware,
   ...middleware: Array<Middleware>
@@ -108,6 +114,12 @@ class MataRouterClass {
 
   /**
    * 获取路由路径
+   * @param customPath 自定义的url路径
+   * @param customClassName 自定义的类名
+   * @param customMethName 自定义的方法名
+   * @param className 实际的类名
+   * @param methodName 实际的方法名
+   * @return string 处理过的路由地址
    */
   getPath: GetPath = (customPath, customClassName, customMethName, className, methodName) => {
     // 如果有自定义路径使用自定义路径,否则使用默认名
