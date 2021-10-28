@@ -28,10 +28,16 @@ interface MethodOptions {
  * @param middlewares 中间件数组
  * @returns
  */
-export type RouterMethodDecorator = (
-  optionsOrMiddleware?: MethodOptions | Middleware,
+type RouterMethodDecorator1 = (
+  firstMiddleware?: Middleware,
   ...middleware: Array<Middleware>
 )=> MethodDecorator;
+type RouterMethodDecorator2 = (
+  options?: MethodOptions,
+  ...middleware: Array<Middleware>
+)=> MethodDecorator;
+type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorator2 ;
+
 
 type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
 
@@ -47,14 +53,32 @@ type RedirectMapItem = {
   statusCode: number | undefined
 };
 
-// Redirect (to: string, statusCode?: number | undefined): MethodDecorator
-// Redirect (from: string, to: string, statusCode?: number | undefined): MethodDecorator
-// Redirect (options: RedirectOptions, statusCode?: number | undefined): MethodDecorator
-type RedirectDecorator = (
-  toOrFromOrOptions: string | RedirectOptions,
-  statusCodeOrTo?: string | number | undefined,
+
+/**
+ * 类型重载,完善重定向的类型提示
+ */
+type RedirectDecorator1 = (
+  to: string,
   statusCode?: number | undefined
 )=> MethodDecorator;
+type RedirectDecorator2 = (
+  to: string,
+  from: undefined,
+  statusCode?: number | undefined
+)=> MethodDecorator;
+type RedirectDecorator3 = (
+  from: string,
+  to: string,
+  statusCode?: number | undefined
+)=> MethodDecorator;
+type RedirectDecorator4 = (
+  options: RedirectOptions,
+  statusCode?: number | undefined
+)=> MethodDecorator;
+type RedirectDecorator = RedirectDecorator1 & RedirectDecorator2 & RedirectDecorator3 & RedirectDecorator4;
+
+
+
 
 
 type ArgumentsFormat = (
@@ -222,9 +246,8 @@ class MataRouterClass {
    * @param _middleware 中间件
    * @returns
    */
-  MetaRouter: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    // eslint-disable-next-line prefer-const
-    let { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  MetaRouter: RouterMethodDecorator = (optionsOrMiddleware: Middleware | MethodOptions | undefined, ..._middleware: Middleware[]) => {
+    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     let { method } = options;
     let customPath = options.path;
     const customClassName = options.className;
@@ -264,9 +287,7 @@ class MataRouterClass {
   };
 
   // 函数类型重载
-  // Redirect (to: string, statusCode?: number | undefined): MethodDecorator
-  // Redirect (from: string, to: string, statusCode?: number | undefined): MethodDecorator
-  // Redirect (options: RedirectOptions, statusCode?: number | undefined): MethodDecorator
+
   Redirect: RedirectDecorator = (_from: string | RedirectOptions, _to: string | number | undefined = undefined, _statusCode: number | undefined = undefined) => {
     // 处理重载变量
     let from: string | undefined;
@@ -324,7 +345,7 @@ class MataRouterClass {
 
   // 以下是甜甜的装饰器糖果
 
-  All: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
+  All: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware: Middleware[]) => {
     const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "all";
     return this.MetaRouter(options, ...middleware);
@@ -384,14 +405,6 @@ class MataRouterClass {
     options.method = "options";
     return this.MetaRouter(options, ...middleware);
   };
-
-  // Options (firstMiddleware?: Middleware, ..._middleware: Array<Middleware>): MethodDecorator
-  // Options (methodOptions?: MethodOptions, ..._middleware: Array<Middleware>): MethodDecorator
-  // Options (optionsOrMiddleware: Middleware | MethodOptions | undefined = MataRouterClass.emptyMiddleware, ..._middleware: any[]): MethodDecorator {
-  //   const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-  //   options.method = "options";
-  //   return this.MetaRouter(options, ...middleware);
-  // }
 
 }
 export default MataRouterClass;
