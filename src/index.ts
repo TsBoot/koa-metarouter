@@ -36,10 +36,14 @@ type RouterMethodDecorator2 = (
   options?: MethodOptions,
   ...middleware: Array<Middleware>
 )=> MethodDecorator;
-type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorator2 ;
+export type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorator2;
 
 
-type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
+// type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>) => ClassDecorator;
+type ControllerDecorator1 = (firstMiddlewares?: Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
+type ControllerDecorator2 = (path: string, ...middleware: Array<Middleware>)=> ClassDecorator;
+type ControllerDecorator3 = (options?: { path?: string }, ...middleware: Array<Middleware>)=> ClassDecorator;
+type ControllerDecorator = ControllerDecorator1 & ControllerDecorator2 & ControllerDecorator3;
 
 type RedirectOptions = {
   from?: string,
@@ -100,7 +104,7 @@ type MapItem = {
 
 type GetPath = (customPath: UrlPath | null | undefined, customClassName: string | undefined, customMethName: string | undefined, className: string, methodName: string)=> string | RegExp;
 
-class MataRouterClass {
+class MetaRouterClass {
 
   constructor (router: Router) {
     this.router = router;
@@ -191,13 +195,14 @@ class MataRouterClass {
    * @param middleware 中间件
    * @returns
    */
-  Controller: ControllerDecorator = (controllerOptions = MataRouterClass.emptyMiddleware, ...middleware) => {
+  Controller: ControllerDecorator = (path, ...middleware) => {
     // 前部参数可选兼容
-    let path = "";
-    if (typeof controllerOptions === "function") {
-      middleware.unshift(controllerOptions);
-    } else if (typeof controllerOptions === "object") {
-      path = controllerOptions.path ? controllerOptions.path : "";
+    if (typeof path === "function") {
+      middleware.unshift(path);
+      path = "";
+    } else if (typeof path === "object") {
+      const options = path;
+      path = options.path ? options.path : "";
     }
     // 返回控制器装饰器,将map中的中间件和控制器中的中间件合并后注册成路由
     return (target: any) => {
@@ -207,7 +212,7 @@ class MataRouterClass {
           const { customPath, method, options } = item;
           const registerMiddleware = [ ...middleware, ...item.middleware ];
           const layer = options as LayerOptions;
-          this.router.register(path + customPath, method, registerMiddleware, layer);
+          this.router.register(path as string + customPath, method, registerMiddleware, layer);
         });
       }
       const redirectArr = this.redirectRouterMap.get(target);
@@ -247,7 +252,7 @@ class MataRouterClass {
    * @returns
    */
   MetaRouter: RouterMethodDecorator = (optionsOrMiddleware: Middleware | MethodOptions | undefined, ..._middleware: Middleware[]) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     let { method } = options;
     let customPath = options.path;
     const customClassName = options.className;
@@ -345,66 +350,66 @@ class MataRouterClass {
 
   // 以下是甜甜的装饰器糖果
 
-  All: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware: Middleware[]) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  All: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware: Middleware[]) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "all";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Get: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Get: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "get";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Head: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Head: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "head";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Post: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Post: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "post";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Put: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Put: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "put";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Delete: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Delete: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "delete";
     return this.MetaRouter(options, ...middleware);
   };
   Del = this.Delete;
 
-  Patch: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Patch: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "patch";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Link: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Link: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "link";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Unlink: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Unlink: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "unlink";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Options: RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-    const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+  Options: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+    const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "options";
     return this.MetaRouter(options, ...middleware);
   };
 
 }
-export default MataRouterClass;
+export default MetaRouterClass;

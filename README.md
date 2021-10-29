@@ -41,9 +41,9 @@ import metaRouter from "./metaRouter";
 
 // metaRouter.router.prefix("/v1");
 
-import "../controller/v1/public/MataRouterController";
+import "../controller/v1/public/MetaRouterController";
 // or
-import("../controller/v1/public/MataRouterController");
+import("../controller/v1/public/MetaRouterController");
 
 export default metaRouter.router;
 ```
@@ -175,16 +175,20 @@ const router = new Router({
 });
 
 // -----------------------------------
-import MataRouterClass, { RouterMethodDecorator } from "koa-metarouter";
-const Purge : RouterMethodDecorator = (optionsOrMiddleware = MataRouterClass.emptyMiddleware, ..._middleware) => {
-  const { options, middleware } = MataRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
+import MetaRouterClass, { RouterMethodDecorator } from "koa-metarouter";
+
+const metaRouter: MetaRouterClass = new MetaRouterClass(router);
+
+export const Purge: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
+  const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
   options.method = "purge";
-  return MetaRouter(options, ...middleware);
+  return metaRouter.MetaRouter(options, ...middleware);
 };
 
 // -----------------------------------
 // DemoController
-@Controller({})
+@Controller("/filePrefix",Middleware)
+// @Controller()
 export default class DemoController{
   @MetaRouter({ method: "purge" })
   async custom_a () : Promise<any> {}

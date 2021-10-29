@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import metaRouter from "./metaRouter";
+import metaRouter, { Purge } from "./metaRouter";
 const { All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller } = metaRouter;
 
 @Controller({ path: "" })
@@ -69,4 +69,28 @@ export default class MethodTestController {
 
   @Redirect({ to: "testGet" }, 302)
   async optRedirect5 (): Promise<any> { }
+}
+
+
+@Controller("/ClassTest")
+export class ClassTestController {
+}
+
+
+@Controller("/ClassTest")
+export class ClassTest2Controller {
+  @All()
+  async testAll (): Promise<any> { }
+}
+
+@Controller({})
+export class ClassTest3Controller {
+  @All()
+  async testAll (): Promise<any> { }
+}
+
+@Controller({ path: "/ClassTest" })
+export class ClassTest4Controller {
+  @Purge()
+  async testAll (): Promise<any> { }
 }
