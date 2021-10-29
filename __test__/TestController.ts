@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import metaRouter, { Purge } from "./metaRouter";
 const { All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller } = metaRouter;
 
@@ -8,10 +5,10 @@ const { All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller } = metaRo
 export default class MethodTestController {
 
   @Get({ name: "index", path: "/" })
-  async index (): Promise<any> { }
+  async index (): Promise<any> {}
 
   @Get({ path: "/test" })
-  async test (): Promise<any> { }
+  async test (): Promise <any > {}
 
   @Get({ name: "testGet" })
   async testGet (): Promise<any> { }

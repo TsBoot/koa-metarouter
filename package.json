@@ -36,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
+    "eslint-config-tsboot": "^1.0.2",
     "eslint-plugin-import": "^2.24.2",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10.4.0",
