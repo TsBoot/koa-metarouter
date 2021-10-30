@@ -113,13 +113,6 @@ class MetaRouterClass {
   router: Router;
 
   /**
-   * 一个空的中间件
-   */
-  static emptyMiddleware: Middleware = async (_ctx: Context, next: Next): Promise<void> => {
-    await next();
-  };
-
-  /**
    * 前部参数可选兼容函数
    * @param optionsOrMiddleware 选项或中间件
    * @param middleware 中间件
@@ -196,6 +189,7 @@ class MetaRouterClass {
    * @returns
    */
   Controller: ControllerDecorator = (path, ...middleware) => {
+    if (!path) path = "";
     // 前部参数可选兼容
     if (typeof path === "function") {
       middleware.unshift(path);
@@ -350,64 +344,100 @@ class MetaRouterClass {
 
   // 以下是甜甜的装饰器糖果
 
-  All: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware: Middleware[]) => {
+  All: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     options.method = "all";
     return this.MetaRouter(options, ...middleware);
   };
 
-  Get: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Get: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "get";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "get" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "get" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Head: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Head: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "head";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "head" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "head" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Post: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Post: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "post";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "post" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "post" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Put: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Put: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "put";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "put" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "put" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Delete: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Delete: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "delete";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "delete" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "delete" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
   Del = this.Delete;
 
-  Patch: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Patch: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "patch";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "patch" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "pathc" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Link: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Link: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "link";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "link" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "link" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Unlink: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Unlink: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "unlink";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "unlink" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "unlink" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 
-  Options: RouterMethodDecorator = (optionsOrMiddleware = MetaRouterClass.emptyMiddleware, ..._middleware) => {
+  Options: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-    options.method = "options";
+    if (Array.isArray(options.method)) {
+      options.method = [ ...options.method, "options" ];
+    } else if (typeof options.method === "string") {
+      options.method = [ options.method, "options" ];
+    }
     return this.MetaRouter(options, ...middleware);
   };
 

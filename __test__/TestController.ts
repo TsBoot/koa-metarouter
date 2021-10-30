@@ -1,32 +1,54 @@
-import metaRouter, { Purge } from "./metaRouter";
-const { All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller } = metaRouter;
+import { Purge, All, Redirect, Post, Get, Del, Delete, MetaRouter, Controller, Unlink, Link, Put, Options, Head, Patch } from "./metaRouter";
 
-@Controller({ path: "" })
+@Controller()
 export default class MethodTestController {
 
   @Get({ name: "index", path: "/" })
   async index (): Promise<any> {}
 
-  @Get({ path: "/test" })
-  async test (): Promise <any > {}
+  @Get({ path: "/testRouterPath" })
+  async testRouterPath (): Promise <any> {}
 
-  @Get({ name: "testGet" })
-  async testGet (): Promise<any> { }
+  @Get({ name: "testRouterName" })
+  async testRouterName (): Promise<any> {}
 
-  @Post()
-  async testPost (): Promise<any> { }
+  @Post({ methodName: "methodName" })
+  async Post (): Promise<any> { }
+
+  @Put({ className: "className" })
+  async Put (): Promise<any> { }
 
   @All()
-  async testAll (): Promise<any> { }
+  async All (): Promise<any> { }
 
-  @Del()
-  async testDel (): Promise<any> { }
+  @Del({ method: [ "get", "post", "post", "post" ]})
+  async Del (): Promise<any> { }
 
   @Delete()
   async Delete (): Promise<any> { }
 
+  @Link()
+  async Link (): Promise<any> { }
+
+  @Unlink()
+  async Unlink (): Promise<any> { }
+
+  @Options()
+  async Options (): Promise<any> { }
+
+  @Head()
+  async Head (): Promise<any> { }
+  @Patch()
+  async Patch (): Promise<any> { }
+  @Purge()
+  async Purge (): Promise<any> { }
+
+
   @MetaRouter({ method: "get" })
   async MetaRouter (): Promise<any> { }
+
+  @MetaRouter({ method: [ "get", "post" ]})
+  async MetaRouter2 (): Promise<any> { }
 
   @Get({ className: "className", methodName: "methodName" })
   async changeName (): Promise<any> { }
@@ -35,59 +57,62 @@ export default class MethodTestController {
   async changeName2 (): Promise<any> { }
 
 
-  @Redirect("testGet")
+  @Redirect("testRouterName")
   async strRedirect1 (): Promise<any> { }
 
-  @Redirect("/StrRedirect2", "testGet")
+  @Redirect("/StrRedirect2", "testRouterName")
   async strRedirect2 (): Promise<any> { }
 
-  @Redirect("/StrRedirect3", "testGet", 302)
+  @Redirect("/StrRedirect3", "testRouterName", 302)
   async strRedirect3 (): Promise<any> { }
 
-  @Redirect("/StrRedirect4", undefined, 302)
+  @Redirect("/testRouterPath", undefined, 302)
   async strRedirect4 (): Promise<any> { }
 
-  @Redirect("/StrRedirect5", 302)
+  @Redirect("testRouterName", 302)
   async strRedirect5 (): Promise<any> { }
 
 
-  @Redirect({ to: "/prefix/MethodTest/testGet" })
+  @Redirect({ to: "/testRouterPath" })
   async optRedirect1 (): Promise<any> { }
 
-  @Redirect({ methodName: "OptRedirect3-methodName", to: "testGet" })
+  @Redirect({ methodName: "OptRedirect3-methodName", to: "testRouterName" })
   async optRedirect2 (): Promise<any> { }
 
-  @Redirect({ className: "TEST", to: "testGet" }) // to `router name`
-  @Redirect({ className: "test", to: "/prefix/MethodTest/testGet" })
+  @Redirect({ className: "TEST", to: "testRouterName" }) // to `router name`
+  @Redirect({ className: "test", to: "/testRouterPath" })
   async optRedirect3 (): Promise<any> { }
 
-  @Redirect({ from: "/optRedirect4-from", className: "someStr", methodName: "someStr", to: "testGet" }, 302) // className and methodName is invalid
+  @Redirect({ from: "/optRedirect4-from", className: "someStr", methodName: "someStr", to: "testRouterName" }, 302) // className and methodName is invalid
   async optRedirect4 (): Promise<any> { }
 
-  @Redirect({ to: "testGet" }, 302)
+  @Redirect({ to: "testRouterName" }, 302)
   async optRedirect5 (): Promise<any> { }
 }
 
 
-@Controller("/ClassTest")
+@Controller()
 export class ClassTestController {
 }
-
-
+@Controller("")
+export class ClassTest1Controller {
+  @Get()
+  async testGet (): Promise<any> { }
+}
 @Controller("/ClassTest")
 export class ClassTest2Controller {
-  @All()
-  async testAll (): Promise<any> { }
+  @Get()
+  async testGet (): Promise<any> { }
 }
 
 @Controller({})
 export class ClassTest3Controller {
-  @All()
-  async testAll (): Promise<any> { }
+  @Get()
+  async testGet (): Promise<any> { }
 }
 
 @Controller({ path: "/ClassTest" })
 export class ClassTest4Controller {
-  @Purge()
-  async testAll (): Promise<any> { }
+  @Get()
+  async testGet (): Promise<any> { }
 }

@@ -38,26 +38,42 @@ import "reflect-metadata";
 `npm i koa-metarouter`
 
 ```typescript
-// ./router/index.ts
-import metaRouter from "./metaRouter";
-
-// metaRouter.router.prefix("/v1");
-
-import "../controller/v1/public/MetaRouterController";
-// or
-import("../controller/v1/public/MetaRouterController");
-
-export default metaRouter.router;
-```
-
-```typescript
-// ./routermetaRouter.ts
+// ./router/metaRouter.ts
 import Router from "@koa/router";
 import MetaRouterClass from "koa-metarouter";
 
 const router = new Router();
 const metaRouter : MetaRouterClass = new MetaRouterClass(router);
+
+// ./router/index.ts
+import metaRouter from "./metaRouter";
+import "../controller/MetaRouterController";
+// or
+import("../controller/MetaRouterController");
+const { Get } = metaRouter;
+export default metaRouter;
+export {
+  Get
+};
+
+// DemoController
+import { Get } from "./metaRouter";
+
+@Controller()
+export default class MethodTestController {
+  @Get() // url: /MethodTest/index
+  async index (): Promise<any> {}
+}
+
+// ./App.ts
+import Koa from "koa";
+import router from "./router";
+const koa = new Koa();
+koa.use(router.routes());
+koa.use(router.allowedMethods());
 ```
+
+
 
 
 ### 你可以使用大小写转换工具为路由名称统一格式化
@@ -101,7 +117,7 @@ export default metaRouter;
 
 ```typescript
 // DemoController
-const { All, Redirect, Post, Get, MetaRouter, Controller, ... } = metaRouter;
+import { Get, All } from "./metaRouter";
 
 // ✨ Controller是必须使用的
 @Controller({path:"/public"}, ...middleware) 
@@ -168,38 +184,58 @@ export default class DemoController {
 如果你想实现自定义的`http`请求方法,你可以这样使用
 
 ```typescript
+// ./router/metaRouter.ts
 import Router from "@koa/router";
+import MetaRouterClass, { RouterMethodDecorator } from "koa-metarouter";
 const router = new Router({
   methods: [
+    "HEAD",
+    "OPTIONS",
     "GET",
+    "PUT",
+    "PATCH",
     "POST",
-    ...
-    "PURGE", // ✨ 在这里添加自定义的方法 !!!
+    "DELETE",
+    "PURGE", // add method 这里添加自定义的方法
   ],
 });
 
-// -----------------------------------
-import MetaRouterClass, { RouterMethodDecorator } from "koa-metarouter";
-
 const metaRouter: MetaRouterClass = new MetaRouterClass(router);
 
-export const Purge: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
+const { All, Redirect, Post, Get, Head, Patch, Del, Delete, MetaRouter, Controller, Options, Link, Unlink, Put } = metaRouter;
+
+// custom Method Name
+const Purge: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware) => {
   const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
-  options.method = "purge";
+  if (Array.isArray(options.method)) {
+    options.method = [ ...options.method, "purge" ];
+  } else if (typeof options.method === "string") {
+    options.method = [ options.method, "purge" ];
+  }
   return metaRouter.MetaRouter(options, ...middleware);
 };
 
-// -----------------------------------
-// DemoController
-@Controller("/filePrefix",Middleware)
-// @Controller()
-// @Controller({path:"/filePrefix"})
-// @Controller(Middleware)
-export default class DemoController{
-  @MetaRouter({ method: "purge" })
-  async custom_a () : Promise<any> {}
+export default metaRouter;
+export {
+  All,
+  Redirect,
+  Get,
+  Post,
+  Del,
+  Delete,
+  Options,
+  Link,
+  Unlink,
+  Put,
+  MetaRouter,
+  Controller,
+  Head,
+  Patch,
+  Purge,
+};
 
-  @Purge()
-  async custom_decorators () : Promise<any> {}
-}
 ```
+
+# 更多信息请查看
+
+[https://github.com/TsBoot/koa-metarouter/blob/main/__test__/TestController.ts](https://github.com/TsBoot/koa-metarouter/blob/main/__test__/TestController.ts)
