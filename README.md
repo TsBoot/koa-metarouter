@@ -41,25 +41,26 @@ import Router from "@koa/router";
 import MetaRouterClass from "koa-metarouter";
 
 const router = new Router();
-const metaRouter : MetaRouterClass = new MetaRouterClass(router);
+const metaRouter: MetaRouterClass = new MetaRouterClass(router);
+export default metaRouter
+const { Controller,Get } = metaRouter
+export {
+    Controller,
+    Get,
+}
 
 // ./router/index.ts
 import metaRouter from "./metaRouter";
-import "../controller/MetaRouterController";
-// or
-import("../controller/MetaRouterController");
-const { Get } = metaRouter;
-export default metaRouter;
-export {
-  Get
-};
+import "../controller/DemoController";
+// or import("../controller/DemoController");
+
 
 // DemoController
-import { Get } from "./metaRouter";
+import { Controller, Get } from "./metaRouter";
 
 @Controller()
-export default class MethodTestController {
-  @Get() // url: /MethodTest/index
+export default class DemoController {
+  @Get() // url: /Demo/index
   async index (): Promise<any> {}
 }
 
@@ -68,7 +69,7 @@ import Koa from "koa";
 import router from "./router";
 const koa = new Koa();
 koa.use(router.routes());
-koa.use(router.allowedMethods());
+koa.listen(3000)
 ```
 
 ### you can use change-case format default part
