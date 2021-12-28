@@ -251,15 +251,29 @@ class MetaRouterClass {
     let customPath = options.path;
     const customClassName = options.className;
     const customMethName = options.methodName;
-    return (controller: any, methodName: string | symbol, _desc: any) => {
-      const Controller = controller.constructor;
-      const item = async (ctx: Context, _next: Next): Promise<any> => {
-        const instance = new Controller(ctx);
-        return await instance[ methodName ]();
-      };
+    return (controller: any, methodName: string | symbol, desc: any) => {
+      // 判断是否是静态方法
+      const isStatic = controller.name ? true : false;
+      let Controller: { new(arg0: Context): any;[x: string]: unknown; ctx?: any; };
+      if (isStatic) {
+        Controller = controller;
+      } else {
+        Controller = controller.constructor;
+      }
+      let item;
+      if (isStatic) {
+        item = async (ctx: Context, next: Next): Promise<any> => {
+          return await desc.value(ctx, next);
+        };
+      } else {
+        item = async (ctx: Context, _next: Next): Promise<any> => {
+          const instance = new Controller(ctx);
+          return await instance[ methodName ]();
+        };
+      }
 
       middleware.push(item);
-      const className = controller.constructor.name;
+      const className = Controller.name;
 
       customPath = this.getPath(customPath, customClassName, customMethName, className, methodName as string);
 

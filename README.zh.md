@@ -119,6 +119,7 @@ export default metaRouter;
 ```typescript
 // DemoController
 import { Get, All } from "./metaRouter";
+import { Context, Next } from "koa";
 
 // ✨ Controller是必须使用的
 @Controller({path:"/public"}, ...middleware) 
@@ -138,6 +139,9 @@ export default class DemoController {
   @All({path:"/middleware"},middleware1,middleware2,...)
   async middleware () : Promise<any> {}
  
+  // 静态方法
+  @All()
+  static async staticTest (ctx:Context,next:Next) : Promise<any> {}
 }
 
 ```

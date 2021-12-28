@@ -54,6 +54,8 @@ const expectRouterList: ExpectRouterList[] = [
   [ null, "get", "/ClassTest3/testGet" ],
   [ null, "get", "/ClassTest/ClassTest4/testGet" ],
 
+  // 路由绑定静态方法
+  [ null, "get", "/StaticTest/testGet" ],
 ];
 
 

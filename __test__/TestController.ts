@@ -116,3 +116,9 @@ export class ClassTest4Controller {
   @Get()
   async testGet (): Promise<any> { }
 }
+
+@Controller()
+export class StaticTestController {
+  @Get()
+  static async testGet (): Promise<any> { }
+}
