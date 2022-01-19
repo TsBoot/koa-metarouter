@@ -1,6 +1,8 @@
 # koa-metarouter
 
-> this project is use Typescript ‘reflect-metadata’ defined koa-router
+# 怀疑被某APP屏限制了聊天，在这里提供联系方式。
+
+> 联系方式：gaoyia@qq.com
 
 - 💡 Simplified route definition
 - 🔑 Non-invasive
@@ -9,16 +11,6 @@
 - 📦 Extremely light
 
 [中文文档](https://github.com/TsBoot/koa-metarouter/blob/main/README.zh.md)
-
-# need \[reflect-metadata]
-
-[https://www.npmjs.com/package/reflect-metadata](https://www.npmjs.com/package/reflect-metadata "https://www.npmjs.com/package/reflect-metadata")
-
-`npm i reflect-metadata`
-
-```typescript
-import "reflect-metadata";
-```
 
 ```json
 // tsconfig.json
@@ -120,6 +112,9 @@ import { Context, Next } from "koa";
 export default class DemoController {
   @Get()
   async test () : Promise<any> {}
+
+  @Get("/stringPath")
+  async stringPath () : Promise<any> {}
 
   // ✨ if you want defined router name
   @All({name :"requestArgument"})

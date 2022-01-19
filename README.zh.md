@@ -1,7 +1,5 @@
 # koa-metarouter
 
-> 这个项目是使用Typescript装饰器简化路由定义流程的路由插件
-
 - 💡 简化路由定义
 - 🔑 无侵入
 - ⚙️ 可以创建多路由实例
@@ -9,17 +7,6 @@
 - 📦 轻量的
 
 [English Document](https://github.com/TsBoot/koa-metarouter/blob/main/README.md)
-
-# 依赖 TS新特性,需要 ‘reflect-metadata’ 插件
-
-[https://www.npmjs.com/package/reflect-metadata](https://www.npmjs.com/package/reflect-metadata "https://www.npmjs.com/package/reflect-metadata")
-
-`npm i reflect-metadata`
-
-```typescript
-// 入口文件
-import "reflect-metadata";
-```
 
 ```json
 // 添加ts配置
@@ -127,6 +114,9 @@ export default class DemoController {
 
   @Get()
   async test () : Promise<any> {}
+
+  @Get("/stringPath")
+  async stringPath () : Promise<any> {}
 
   // ✨ 如果你想定义路由的名称,你可以这样做
   @All({name :"requestArgument"})

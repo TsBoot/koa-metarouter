@@ -14,6 +14,7 @@ type ExpectRouterList = [
 
 const expectRouterList: ExpectRouterList[] = [
   [ "index", "get", "/" ],
+  [ null, "get", "stringGet" ],
   [ null, "get", "/testRouterPath" ],
   [ "testRouterName", "get", "/MethodTest/testRouterName" ],
   [ null, "post", "/MethodTest/methodName" ],

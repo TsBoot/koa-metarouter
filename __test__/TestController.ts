@@ -6,6 +6,9 @@ export default class MethodTestController {
   @Get({ name: "index", path: "/" })
   async index (): Promise<any> {}
 
+  @Get("stringGet")
+  async stringGet (): Promise<any> { }
+
   @Get({ path: "/testRouterPath" })
   async testRouterPath (): Promise <any> {}
 

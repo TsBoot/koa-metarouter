@@ -36,7 +36,11 @@ type RouterMethodDecorator2 = (
   options?: MethodOptions,
   ...middleware: Array<Middleware>
 )=> MethodDecorator;
-export type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorator2;
+type RouterMethodDecorator3 = (
+  options?: string,
+  ...middleware: Array<Middleware>
+)=> MethodDecorator;
+export type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorator2 & RouterMethodDecorator3;
 
 
 // type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>) => ClassDecorator;
@@ -86,7 +90,7 @@ type RedirectDecorator = RedirectDecorator1 & RedirectDecorator2 & RedirectDecor
 
 
 type ArgumentsFormat = (
-  optionsOrMiddleware?: MethodOptions | Middleware,
+  optionsOrMiddleware?: string | MethodOptions | Middleware,
   ...middleware: Array<Middleware>
 )=> {
   options: MethodOptions,
@@ -126,6 +130,9 @@ class MetaRouterClass {
       middleware.unshift(optionsOrMiddleware);
     } else if (typeof optionsOrMiddleware === "object") {
       options = optionsOrMiddleware;
+    } else if (typeof optionsOrMiddleware === "string") {
+      options.path = optionsOrMiddleware;
+      options.method = undefined;
     }
     return {
       options,
@@ -190,7 +197,7 @@ class MetaRouterClass {
    */
   Controller: ControllerDecorator = (path, ...middleware) => {
     if (!path) path = "";
-    // 前部参数可选兼容
+    // 第一个参数，可选兼容
     if (typeof path === "function") {
       middleware.unshift(path);
       path = "";
@@ -245,7 +252,7 @@ class MetaRouterClass {
    * @param _middleware 中间件
    * @returns
    */
-  MetaRouter: RouterMethodDecorator = (optionsOrMiddleware: Middleware | MethodOptions | undefined, ..._middleware: Middleware[]) => {
+  MetaRouter: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware: Middleware[]) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     let { method } = options;
     let customPath = options.path;
