@@ -1,9 +1,5 @@
 # koa-metarouter
 
-# 怀疑被某APP屏限制了聊天，在这里提供联系方式。
-
-> 联系方式：gaoyia@qq.com
-
 - 💡 Simplified route definition
 - 🔑 Non-invasive
 - ⚙️ Multiple router instance
