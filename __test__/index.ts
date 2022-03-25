@@ -4,7 +4,8 @@ import metaRouter from "./metaRouter";
 
 import "./TestController";
 
-const All = [ "HEAD", "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD", "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKCOL", "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PRI", "PROPFIND", "PROPPATCH", "PURGE", "PUT", "REBIND", "REPORT", "SEARCH", "SOURCE", "SUBSCRIBE", "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE" ];
+// const All = [ "HEAD", "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD", "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKCOL", "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PRI", "PROPFIND", "PROPPATCH", "PURGE", "PUT", "REBIND", "REPORT", "SEARCH", "SOURCE", "SUBSCRIBE", "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE" ];
+const All = [ "HEAD", "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD", "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKCOL", "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PROPFIND", "PROPPATCH", "PURGE", "PUT", "REBIND", "REPORT", "SEARCH", "SOURCE", "SUBSCRIBE", "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE" ];
 
 type ExpectRouterList = [
   (null | string),
@@ -57,6 +58,16 @@ const expectRouterList: ExpectRouterList[] = [
 
   // 路由绑定静态方法
   [ null, "get", "/StaticTest/testGet" ],
+  // 控制器路由为自定义的情况，不要class名
+
+  // 增加了 控制器 "/" path情况
+  [ null, "get", "/testGet" ],
+
+  // 增加了控制器类名统一处理的情况
+  [ null, "get", "/a/testGet" ],
+  [ null, "get", "/b/testGet2" ],
+
+
 ];
 
 

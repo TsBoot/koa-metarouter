@@ -46,7 +46,7 @@ export type RouterMethodDecorator = RouterMethodDecorator1 & RouterMethodDecorat
 // type ControllerDecorator = (controllerOptions?: { path?: string } | Middleware, ...middleware: Array<Middleware>) => ClassDecorator;
 type ControllerDecorator1 = (firstMiddlewares?: Middleware, ...middleware: Array<Middleware>)=> ClassDecorator;
 type ControllerDecorator2 = (path: string, ...middleware: Array<Middleware>)=> ClassDecorator;
-type ControllerDecorator3 = (options?: { path?: string }, ...middleware: Array<Middleware>)=> ClassDecorator;
+type ControllerDecorator3 = (options?: { path?: string, className?: string }, ...middleware: Array<Middleware>)=> ClassDecorator;
 type ControllerDecorator = ControllerDecorator1 & ControllerDecorator2 & ControllerDecorator3;
 
 type RedirectOptions = {
@@ -98,15 +98,23 @@ type ArgumentsFormat = (
 };
 
 type MapItem = {
-  customPath: UrlPath,
+  info: GetPathInfo,
   method: string[],
   middleware: Array<Middleware>,
   options: MethodOptions
 };
 
+type GetPathInfo = {
+  customControllerPath: UrlPath | null | undefined,
+  customControllerClassName: string | undefined,
+  customPath: UrlPath | null | undefined,
+  customClassName: string | undefined,
+  customMethName: string | undefined,
+  className: string,
+  methodName: string
+};
 
-
-type GetPath = (customPath: UrlPath | null | undefined, customClassName: string | undefined, customMethName: string | undefined, className: string, methodName: string)=> string | RegExp;
+type GetPath = (info: GetPathInfo)=> string | RegExp;
 
 class MetaRouterClass {
 
@@ -142,6 +150,8 @@ class MetaRouterClass {
 
   /**
    * 获取路由路径
+   * @param customControllerPath 自定义的控制器的路径
+   * @param customControllerClassName 自定义的控制器的类名
    * @param customPath 自定义的url路径
    * @param customClassName 自定义的类名
    * @param customMethName 自定义的方法名
@@ -149,18 +159,29 @@ class MetaRouterClass {
    * @param methodName 实际的方法名
    * @return string 处理过的路由地址
    */
-  getPath: GetPath = (customPath, customClassName, customMethName, className, methodName) => {
+  getPath: GetPath = ({ customControllerPath, customControllerClassName, customPath, customClassName, customMethName, className, methodName }) => {
     // 如果有自定义路径使用自定义路径,否则使用默认名
     if (!customPath) {
       // 如果有自定义类名使用自定义类名,否则使用默认名
       if (!customClassName) {
-        customClassName = this.classNameFormat(className);
+        if (customControllerClassName) {
+          customClassName = customControllerClassName;
+        } else {
+          customClassName = this.classNameFormat(className);
+        }
       }
+
       // 如果有自定义函数名使用自定义函数名,否则使用默认名
       if (!customMethName) {
         customMethName = this.methodNameFormat(methodName);
       }
-      customPath = "/" + customClassName + "/" + customMethName;
+      if (customControllerPath === "/") {
+        customPath = "/" + customMethName;
+      } else if (customControllerPath) {
+        customPath = customControllerPath + "/" + customClassName + "/" + customMethName;
+      } else {
+        customPath = "/" + customClassName + "/" + customMethName;
+      }
     }
     return customPath;
   };
@@ -196,6 +217,7 @@ class MetaRouterClass {
    * @returns
    */
   Controller: ControllerDecorator = (path, ...middleware) => {
+    let customControllerClassName: string;
     if (!path) path = "";
     // 第一个参数，可选兼容
     if (typeof path === "function") {
@@ -204,16 +226,21 @@ class MetaRouterClass {
     } else if (typeof path === "object") {
       const options = path;
       path = options.path ? options.path : "";
+      customControllerClassName = options.className ? options.className : "";
     }
     // 返回控制器装饰器,将map中的中间件和控制器中的中间件合并后注册成路由
     return (target: any) => {
       const arr = this.classRouterMap.get(target);
       if (arr) {
         arr.forEach(item => {
-          const { customPath, method, options } = item;
+          const { info, method, options } = item;
+          info.customControllerPath = path as string;
+          info.customControllerClassName = customControllerClassName;
+          const fullPath: UrlPath = this.getPath(info);
+
           const registerMiddleware = [ ...middleware, ...item.middleware ];
           const layer = options as LayerOptions;
-          this.router.register(path as string + customPath, method, registerMiddleware, layer);
+          this.router.register(fullPath, method, registerMiddleware, layer);
         });
       }
       const redirectArr = this.redirectRouterMap.get(target);
@@ -255,7 +282,7 @@ class MetaRouterClass {
   MetaRouter: RouterMethodDecorator = (optionsOrMiddleware, ..._middleware: Middleware[]) => {
     const { options, middleware } = MetaRouterClass.argumentsFormat(optionsOrMiddleware, ..._middleware);
     let { method } = options;
-    let customPath = options.path;
+    const customPath = options.path;
     const customClassName = options.className;
     const customMethName = options.methodName;
     return (controller: any, methodName: string | symbol, desc: any) => {
@@ -282,7 +309,7 @@ class MetaRouterClass {
       middleware.push(item);
       const className = Controller.name;
 
-      customPath = this.getPath(customPath, customClassName, customMethName, className, methodName as string);
+      const info: GetPathInfo = { customControllerPath: "", customControllerClassName: "", customPath, customClassName, customMethName, className, methodName: methodName as string };
 
       if (!method) {
         method = "all";
@@ -300,7 +327,7 @@ class MetaRouterClass {
         arr = [];
       }
 
-      arr.push({ customPath, method, middleware, options });
+      arr.push({ info, method, middleware, options });
       this.classRouterMap.set(Controller, arr);
 
     };
@@ -347,8 +374,8 @@ class MetaRouterClass {
     return (controller: any, methodName: string | symbol, _desc: any) => {
       const className = controller.constructor.name;
       const Controller = controller.constructor;
-
-      from = this.getPath(from, customClassName, customMethName as string, className, methodName as string) as string;
+      const info = { customControllerPath: "", customControllerClassName: "", customPath: from, customClassName, customMethName: customMethName as string, className, methodName: methodName as string };
+      from = this.getPath(info) as string;
 
       let arr = this.redirectRouterMap.get(Controller);
       if (!arr) {

@@ -125,3 +125,27 @@ export class StaticTestController {
   @Get()
   static async testGet (): Promise<any> { }
 }
+
+@Controller({ path: "/" })
+export class ControllerTest1Controller {
+
+  @Get() // 35:/testGet
+  async testGet (): Promise<any> { }
+
+  // @Redirect("/testRouterPath")
+  // async Redirect (): Promise<any> { }
+}
+
+// 如果在控制器上定义了customClassName，则默认使用
+@Controller({ className: "a" })
+export class ControllerTest2Controller {
+
+  @Get() // /a/testGet
+  async testGet (): Promise<any> { }
+
+  @Get({ className: "b" }) // /b/testGet
+  async testGet2 (): Promise<any> { }
+
+  // @Redirect("/testRouterPath")
+  // async Redirect (): Promise<any> { }
+}
