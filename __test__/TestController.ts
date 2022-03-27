@@ -132,8 +132,8 @@ export class ControllerTest1Controller {
   @Get() // 35:/testGet
   async testGet (): Promise<any> { }
 
-  // @Redirect("/testRouterPath")
-  // async Redirect (): Promise<any> { }
+  @Redirect("/rootRedirectRouterPath", "/rootRedirectRouterPath2")
+  async rootRedirectRouterPath (): Promise<any> { }
 }
 
 // 如果在控制器上定义了customClassName，则默认使用
@@ -146,6 +146,6 @@ export class ControllerTest2Controller {
   @Get({ className: "b" }) // /b/testGet
   async testGet2 (): Promise<any> { }
 
-  // @Redirect("/testRouterPath")
-  // async Redirect (): Promise<any> { }
+  @Redirect("/rootRedirectRouterPath2")
+  async rootRedirectRouterPath2 (): Promise<any> { }
 }

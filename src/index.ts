@@ -53,10 +53,10 @@ type RedirectOptions = {
   from?: string,
   to: string,
   methodName?: string,
-  className?: string
+  className?: string,
 };
 type RedirectMapItem = {
-  from: string, // 也可以是路由名
+  info: GetPathInfo,
   to: string, // 也可以是路由名
   statusCode: number | undefined
 };
@@ -109,7 +109,7 @@ type GetPathInfo = {
   customControllerClassName: string | undefined,
   customPath: UrlPath | null | undefined,
   customClassName: string | undefined,
-  customMethName: string | undefined,
+  customMethodName: string | undefined,
   className: string,
   methodName: string
 };
@@ -154,12 +154,12 @@ class MetaRouterClass {
    * @param customControllerClassName 自定义的控制器的类名
    * @param customPath 自定义的url路径
    * @param customClassName 自定义的类名
-   * @param customMethName 自定义的方法名
+   * @param customMethodName 自定义的方法名
    * @param className 实际的类名
    * @param methodName 实际的方法名
    * @return string 处理过的路由地址
    */
-  getPath: GetPath = ({ customControllerPath, customControllerClassName, customPath, customClassName, customMethName, className, methodName }) => {
+  getPath: GetPath = ({ customControllerPath, customControllerClassName, customPath, customClassName, customMethodName, className, methodName }) => {
     // 如果有自定义路径使用自定义路径,否则使用默认名
     if (!customPath) {
       // 如果有自定义类名使用自定义类名,否则使用默认名
@@ -172,15 +172,15 @@ class MetaRouterClass {
       }
 
       // 如果有自定义函数名使用自定义函数名,否则使用默认名
-      if (!customMethName) {
-        customMethName = this.methodNameFormat(methodName);
+      if (!customMethodName) {
+        customMethodName = this.methodNameFormat(methodName);
       }
       if (customControllerPath === "/") {
-        customPath = "/" + customMethName;
+        customPath = "/" + customMethodName;
       } else if (customControllerPath) {
-        customPath = customControllerPath + "/" + customClassName + "/" + customMethName;
+        customPath = customControllerPath + "/" + customClassName + "/" + customMethodName;
       } else {
-        customPath = "/" + customClassName + "/" + customMethName;
+        customPath = "/" + customClassName + "/" + customMethodName;
       }
     }
     return customPath;
@@ -246,8 +246,11 @@ class MetaRouterClass {
       const redirectArr = this.redirectRouterMap.get(target);
       if (redirectArr) {
         redirectArr.forEach(item => {
-          const { from, to, statusCode } = item;
-          this.router.redirect(path + from, to, statusCode);
+          const { info, to, statusCode } = item;
+          info.customControllerPath = path as string;
+          info.customControllerClassName = customControllerClassName;
+          const fullPath: UrlPath = this.getPath(info);
+          this.router.redirect(fullPath as string, to, statusCode);
         });
       }
     };
@@ -284,7 +287,7 @@ class MetaRouterClass {
     let { method } = options;
     const customPath = options.path;
     const customClassName = options.className;
-    const customMethName = options.methodName;
+    const customMethodName = options.methodName;
     return (controller: any, methodName: string | symbol, desc: any) => {
       // 判断是否是静态方法
       const isStatic = controller.name ? true : false;
@@ -309,7 +312,7 @@ class MetaRouterClass {
       middleware.push(item);
       const className = Controller.name;
 
-      const info: GetPathInfo = { customControllerPath: "", customControllerClassName: "", customPath, customClassName, customMethName, className, methodName: methodName as string };
+      const info: GetPathInfo = { customControllerPath: "", customControllerClassName: "", customPath, customClassName, customMethodName, className, methodName: methodName as string };
 
       if (!method) {
         method = "all";
@@ -341,7 +344,7 @@ class MetaRouterClass {
     let to: string;
     let statusCode: number | undefined;
     let customClassName: string | undefined;
-    let customMethName: string | undefined;
+    let customMethodName: string | undefined;
     if (typeof _from === "string" && _to === undefined && _statusCode === undefined) {
       to = _from;
       from = undefined;
@@ -362,7 +365,7 @@ class MetaRouterClass {
       to = _from.to;
       from = _from.from;
       customClassName = _from.className;
-      customMethName = _from.methodName;
+      customMethodName = _from.methodName;
       if (typeof _to === "number") {
         statusCode = _to;
       }
@@ -374,15 +377,15 @@ class MetaRouterClass {
     return (controller: any, methodName: string | symbol, _desc: any) => {
       const className = controller.constructor.name;
       const Controller = controller.constructor;
-      const info = { customControllerPath: "", customControllerClassName: "", customPath: from, customClassName, customMethName: customMethName as string, className, methodName: methodName as string };
-      from = this.getPath(info) as string;
+      const info = { customControllerPath: "", customControllerClassName: "", customPath: from, customClassName, customMethodName: customMethodName as string, className, methodName: methodName as string };
+      // from = this.getPath(info) as string;
 
       let arr = this.redirectRouterMap.get(Controller);
       if (!arr) {
         arr = [];
       }
       arr.push({
-        from,
+        info,
         to,
         statusCode,
       });

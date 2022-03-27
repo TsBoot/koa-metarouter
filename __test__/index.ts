@@ -62,11 +62,13 @@ const expectRouterList: ExpectRouterList[] = [
 
   // 增加了 控制器 "/" path情况
   [ null, "get", "/testGet" ],
+  [ null, All, "/rootRedirectRouterPath" ],
 
   // 增加了控制器类名统一处理的情况
   [ null, "get", "/a/testGet" ],
   [ null, "get", "/b/testGet2" ],
 
+  [ null, All, "/a/rootRedirectRouterPath2" ],
 
 ];
 
