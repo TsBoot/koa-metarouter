@@ -1,7 +1,7 @@
 {
   "name": "koa-metarouter",
   "version": "2.3.0",
-  "description": "this project is use Typescript ‘reflect-metadata’ defined koa-router",
+  "description": "this project is use Decorators defined koa-router",
   "main": "lib/index.js",
   "files": [
     "/lib"
