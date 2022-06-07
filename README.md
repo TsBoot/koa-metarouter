@@ -25,7 +25,7 @@
 
 ```typescript
 // ./router/metaRouter.ts
-import Router from "@koa/router";
+import Router from "@koa/router"; // or koa-router
 import MetaRouterClass from "koa-metarouter";
 
 const router = new Router();
@@ -41,7 +41,7 @@ export {
 import metaRouter from "./metaRouter";
 import "../controller/DemoController";
 // or import("../controller/DemoController");
-
+export default metaRouter.router;
 
 // DemoController
 import { Controller, Get } from "./metaRouter";

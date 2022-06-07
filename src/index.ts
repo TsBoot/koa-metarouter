@@ -268,10 +268,10 @@ class MetaRouterClass {
   }
 
   /**
- * 默认的处理路由中类名的方法
- * @param className 类名
- * @returns {classPath} 对应的路由名
- */
+   * 默认的处理路由中类名的方法
+   * @param className 类名
+   * @returns {classPath} 对应的路由名
+   */
   methodNameFormat (methodName: string): string {
     return methodName;
   }

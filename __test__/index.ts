@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import "reflect-metadata";
 import metaRouter from "./metaRouter";
 import methods from "methods";
 
@@ -15,6 +13,7 @@ type ExpectRouterList = [
 
 const expectRouterList: ExpectRouterList[] = [
   [ "index", "get", "/" ],
+  [ null, "get", "/prames/:params" ],
   [ null, "get", "stringGet" ],
   [ null, "get", "/testRouterPath" ],
   [ "testRouterName", "get", "/MethodTest/testRouterName" ],

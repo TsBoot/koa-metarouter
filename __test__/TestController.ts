@@ -6,6 +6,10 @@ export default class MethodTestController {
   @Get({ name: "index", path: "/" })
   async index (): Promise<any> {}
 
+  @Get({ path: "/prames/:params" }) // 测试params传参
+  async prames (): Promise<any> {
+  }
+
   @Get("stringGet")
   async stringGet (): Promise<any> { }
 
